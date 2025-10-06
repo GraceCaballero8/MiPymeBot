@@ -11,17 +11,16 @@ function Login() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    
+
     try {
-      // const res = await api.post("/auth/login", { email, password });
-      console.log("Login correcto:", res.data);
-      // Aquí podrías redirigir al usuario o guardar el token
+      const res = await api.post("/auth/login", { email, password });
+      const { token, usuario } = res.data;
 
-      windows.localstorage.setItem("token","")
-
+      localStorage.setItem("token", token);          // ➜ guarda
+      window.location.href = "/pymebot";             // ➜ redirige
     } catch (err) {
-      console.error("Error en login", err);
-      setError("Credenciales incorrectas. Por favor intenta de nuevo.");
+      console.error(err);
+      setError("Credenciales incorrectas");
     } finally {
       setIsLoading(false);
     }

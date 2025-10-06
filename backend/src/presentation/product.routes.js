@@ -1,5 +1,5 @@
 import { Router } from "express";
-import ProductoService from "../application_services/ProductoService.js";
+import ProductoService from "../application/services/ProductoService.js";
 import VarianteService from "../application/services/VarianteService.js";
 
 const router = Router();
@@ -54,7 +54,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// /products/:id/variantes
+
 // ===== VARIANTES =====
 // GET /products/:id/variantes
 router.get("/:id/variantes", async (req, res) => {

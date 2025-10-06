@@ -12,7 +12,24 @@ class AuthService {
     const match = await bcrypt.compare(password, user.contrasena);
     if (!match) throw new Error("Contraseña incorrecta");
 
-    return user.nombres;
+    // ➜ Genera el token
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      CLAVE_SECRETA,
+      { expiresIn: "7d" }
+    );
+
+    return {
+      usuario: {
+        id: user.id,
+        nombres: user.nombres,
+        apellidos: user.apellidos,
+        email: user.email,
+      },
+      token,
+    };
+
+    //return user.nombres;
   }
 
   static async register(dni, nombres, apellidos, email, password) {
