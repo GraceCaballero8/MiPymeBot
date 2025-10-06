@@ -1,0 +1,116 @@
+import React, { useState } from "react";
+import api from "../services/api";
+
+function Register() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      console.log("Login correcto:", res.data);
+      // Aquí podrías redirigir al usuario o guardar el token
+    } catch (err) {
+      console.error("Error en login", err);
+      setError("Credenciales incorrectas. Por favor intenta de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-500 to-green-700 p-4">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-green-600 mb-2">Registro - MiPymeBot</h1>
+          {/* <p className="text-gray-600">Con un asistente de IA en WhatsApp, vende más</p> */}
+        </div>
+
+        {/* Formulario */}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-2">
+              Correo electrónico
+            </label>
+            <input
+              id="email"
+              type="email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="tu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                Recordarme
+              </label>
+            </div>
+            <div className="text-sm">
+              <a href="#" className="font-medium text-green-600 hover:text-green-500">
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mb-4 text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300 disabled:opacity-50"
+          >
+            {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            o{' '}
+            <a href="#" className="font-medium text-green-600 hover:text-green-500">
+              Iniciar sesión con enlace mágico
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Register;
