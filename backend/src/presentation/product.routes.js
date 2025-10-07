@@ -1,16 +1,19 @@
 import { Router } from "express";
+import ProductoRepository from "../infrastructure/repositories/ProductoRepository.js";
 import ProductoService from "../application/services/ProductoService.js";
 import VarianteService from "../application/services/VarianteService.js";
 
 const router = Router();
 
 // GET /products
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const productos = await ProductoService.listar();
-    res.json(productos);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
+    const { search = "", category = "", stock = "" } = req.query;
+    const products = await ProductoRepository.getAll(search, category, stock);
+    res.json(products);
+  } catch (error) {
+    console.error("❌ Error en GET /products:", error.message, error.stack);
+    res.status(500).json({ message: error.message });
   }
 });
 

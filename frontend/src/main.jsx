@@ -1,27 +1,40 @@
-import "./index.css"
+import "./index.css";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import React from "react";
+import ReactDOM from "react-dom/client";
 
-import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
-import App from './App'; 
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login           from "./pages/Login";
+import Register        from "./pages/Register";
+import ProtectedRoute  from "./components/ProtectedRoute"; // opción protegida
+import PymeBotLayout   from "./layouts/PymeBotLayout";
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import PymeBot from "./pages/PymeBot";
+// páginas que irán dentro del layout
+import Dashboard  from "./pages/Dashboard";
+import Products   from "./pages/Products";
+import Inventory  from "./pages/Inventory";   
+import Customers  from "./pages/Customers";
+import Reports    from "./pages/Reports";
+import Settings   from "./pages/Settings";
 
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <>
-      <Route path="/" element={<App />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/pymebot" element={<PymeBot />}  />
+const router = createBrowserRouter([
+  { path: "/login",    element: <Login /> },
+  { path: "/register", element: <Register /> },
+  {
+    path: "/pymebot",
+    element: <ProtectedRoute><PymeBotLayout /></ProtectedRoute>,
+    children: [
+      { index: true,        element: <Dashboard /> }, // /pymebot
+      { path: "dashboard", element: <Dashboard /> },
+      { path: "products",  element: <Products /> },
+      { path: "inventory", element: <Inventory /> }, // ← nuevo nombre
+      { path: "customers", element: <Customers /> },
+      { path: "reports",   element: <Reports /> },
+      { path: "settings",  element: <Settings /> },
+    ],
+  },
+]);
 
-    </>
-  )
-);
-
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <RouterProvider router={router} />
   </React.StrictMode>

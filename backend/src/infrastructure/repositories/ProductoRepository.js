@@ -1,25 +1,35 @@
 import pool from "../config/db.js";
 
 class ProductoRepository {
-  static async getAll() {
-    const result = await pool.query(`
-      SELECT 
-        p.id,
-        p.nombre,
-        c.nombre AS categoria,
-        COALESCE(SUM(pv.stock_actual), 0) AS stock_total,
-        (
-          SELECT precio_unitario
-          FROM precios_por_cantidad
-          WHERE producto_id = p.id AND cantidad_minima = 1
-          LIMIT 1
-        ) AS precio_menor
+  static async getAll(search = "", category = "", stock = "") {
+    const sql = `
+      SELECT p.id,
+            p.nombre,
+            c.nombre AS categoria,
+            COALESCE(SUM(pv.stock_actual), 0) AS stock_total,
+            ( SELECT precio_unitario
+              FROM precios_por_cantidad
+              WHERE producto_id = p.id AND cantidad_minima = 1
+              LIMIT 1
+            ) AS precio_menor
       FROM productos p
       JOIN categorias c ON p.categoria_id = c.id
       LEFT JOIN producto_variantes pv ON pv.producto_id = p.id
+      WHERE LOWER(p.nombre) LIKE LOWER($1)
+        AND ($2::int IS NULL OR p.categoria_id = $2)
       GROUP BY p.id, p.nombre, c.nombre
+      HAVING (
+              ($3 = 'low'  AND COALESCE(SUM(pv.stock_actual), 0) <= 5) OR
+              ($3 = 'out' AND COALESCE(SUM(pv.stock_actual), 0) = 0)  OR
+              ($3 = ''    OR $3 IS NULL)
+            )
       ORDER BY p.id DESC
-    `);
+    `;
+    const result = await pool.query(sql, [
+      `%${search}%`,
+      category || null,
+      stock || null,
+    ]);
     return result.rows;
   }
 
