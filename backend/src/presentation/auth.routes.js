@@ -16,13 +16,34 @@ router.post("/login", async (req, res) => {
 
 // REGISTER
 router.post("/register", async (req, res) => {
-  const { dni, nombres, apellidos, email, password } = req.body; 
+  const { dni, nombres, apellidos, email, password } = req.body;
   try {
-    const response = await AuthService.register(dni, nombres,apellidos, email, password);
+    const response = await AuthService.register(
+      dni,
+      nombres,
+      apellidos,
+      email,
+      password
+    );
     res.json(response);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
 
+router.post("/me", async (req, res) => {
+  const { token } = req.body;
+  try {
+    const response = await AuthService.register(
+      dni,
+      nombres,
+      apellidos,
+      email,
+      password
+    );
+    res.json(response);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
 export default router;
