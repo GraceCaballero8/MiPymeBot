@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import api from "../services/api";
 
 function Login() {
@@ -6,6 +6,21 @@ function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  async function validateSession(){
+    try {
+      const token  = localStorage.getItem("token");
+
+      if (token) {
+        await api.get("/auth/validate", { token });
+        window.location.href = "/pymebot";
+      }else{
+        return
+      }
+    } catch (error) {
+      return
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +40,10 @@ function Login() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    validateSession()
+  }, [])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-500 to-green-700 p-4">

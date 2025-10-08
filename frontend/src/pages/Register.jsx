@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import api from "../services/api";
 
 function Register() {
+  const [dni, setDni] = useState("");
+  const [nombres, setNombres] = useState("");
+  const [apellidos, setApellidos] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -12,14 +14,15 @@ function Register() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    
+
     try {
-      const res = await api.post("/auth/login", { email, password });
-      console.log("Login correcto:", res.data);
-      // Aquí podrías redirigir al usuario o guardar el token
+      const payload = { dni, nombres, apellidos, email, password };
+      const res = await api.post("/auth/register", payload);
+      console.log("Registro correcto:", res.data);
+      window.location.href = "/"; // redirige al login
     } catch (err) {
-      console.error("Error en login", err);
-      setError("Credenciales incorrectas. Por favor intenta de nuevo.");
+      console.error("Error en registro", err);
+      setError("No se pudo completar el registro. Intenta de nuevo.");
     } finally {
       setIsLoading(false);
     }
@@ -30,11 +33,55 @@ function Register() {
       <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-green-600 mb-2">Registro - MiPymeBot</h1>
-          {/* <p className="text-gray-600">Con un asistente de IA en WhatsApp, vende más</p> */}
         </div>
 
         {/* Formulario */}
         <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="dni" className="block text-gray-700 text-sm font-medium mb-2">
+              DNI
+            </label>
+            <input
+              id="dni"
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="45263317"
+              value={dni}
+              onChange={(e) => setDni(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="nombres" className="block text-gray-700 text-sm font-medium mb-2">
+              Nombres
+            </label>
+            <input
+              id="nombres"
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Pool"
+              value={nombres}
+              onChange={(e) => setNombres(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="apellidos" className="block text-gray-700 text-sm font-medium mb-2">
+              Apellidos
+            </label>
+            <input
+              id="apellidos"
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Nuñez"
+              value={apellidos}
+              onChange={(e) => setApellidos(e.target.value)}
+              required
+            />
+          </div>
+
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-2">
               Correo electrónico
@@ -43,14 +90,14 @@ function Register() {
               id="email"
               type="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="tu@email.com"
+              placeholder="poolnuñez@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
-          <div className="mb-4">
+          <div className="mb-6">
             <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
               Contraseña
             </label>
@@ -58,31 +105,11 @@ function Register() {
               id="password"
               type="password"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="••••••••"
+              placeholder="admin456"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-          </div>
-
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                Recordarme
-              </label>
-            </div>
-            <div className="text-sm">
-              <a href="#" className="font-medium text-green-600 hover:text-green-500">
-                ¿Olvidaste tu contraseña?
-              </a>
-            </div>
           </div>
 
           {error && (
@@ -96,15 +123,15 @@ function Register() {
             disabled={isLoading}
             className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300 disabled:opacity-50"
           >
-            {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
+            {isLoading ? "Registrando..." : "Crear cuenta"}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            o{' '}
-            <a href="#" className="font-medium text-green-600 hover:text-green-500">
-              Iniciar sesión con enlace mágico
+            ¿Ya tienes cuenta?{" "}
+            <a href="/" className="font-medium text-green-600 hover:text-green-500">
+              Inicia sesión
             </a>
           </p>
         </div>

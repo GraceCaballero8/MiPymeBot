@@ -17,6 +17,7 @@ import Reports    from "./pages/Reports";
 import Settings   from "./pages/Settings";
 
 const router = createBrowserRouter([
+  { path: "/",    element: <Login /> },
   { path: "/login",    element: <Login /> },
   { path: "/register", element: <Register /> },
   {
