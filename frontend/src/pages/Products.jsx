@@ -10,6 +10,19 @@ export default function Products() {
   const [stockFilter, setStockFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
 
+  const [categories, setCategories] = useState([])
+
+  async function fetchCategories(){
+    try {
+      const response = await api.get("/api/categorias")
+      setCategories(response.data)
+    } catch (error) {
+      setCategories([])
+    }
+  }
+
+  
+
   const handleSaved = () => {
     // recarga la lista
     handleSearch();
@@ -47,6 +60,10 @@ export default function Products() {
         setLoading(false);
         });
     }, [search, category, stockFilter]);
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
 
   const handleDelete = (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"?`)) return;
