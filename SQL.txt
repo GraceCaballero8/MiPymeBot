@@ -1,0 +1,145 @@
+-- tablas sobre producto
+
+CREATE TABLE categorias (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE productos (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    categoria_id INT REFERENCES categorias(id),
+    stock_actual INT NOT NULL CHECK (stock_actual >= 0),
+    stock_minimo INT NOT NULL CHECK (stock_minimo >= 0)
+);
+
+CREATE TABLE precios_por_cantidad (
+    id SERIAL PRIMARY KEY,
+    producto_id INT REFERENCES productos(id) ON DELETE CASCADE,
+    cantidad_minima INT NOT NULL CHECK (cantidad_minima > 0),
+    precio_unitario DECIMAL(10,2) NOT NULL CHECK (precio_unitario > 0),
+    UNIQUE (producto_id, cantidad_minima)
+);
+
+CREATE TABLE estados_stock (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) UNIQUE
+);
+
+INSERT INTO estados_stock (nombre) VALUES
+('En stock'),
+('Stock bajo'),
+('Agotado');
+
+CREATE OR REPLACE VIEW vista_productos_con_precio_actual AS
+SELECT
+    p.id,
+    p.nombre,
+    c.nombre AS categoria,
+    p.stock_actual,
+    p.stock_minimo,
+    CASE
+        WHEN p.stock_actual = 0 THEN 'Agotado'
+        WHEN p.stock_actual <= p.stock_minimo THEN 'Stock bajo'
+        ELSE 'En stock'
+    END AS estado_stock,
+    (
+        SELECT precio_unitario
+        FROM precios_por_cantidad
+        WHERE producto_id = p.id AND cantidad_minima = 1
+        LIMIT 1
+    ) AS precio_menor,
+    (
+        SELECT precio_unitario
+        FROM precios_por_cantidad
+        WHERE producto_id = p.id AND cantidad_minima = 12
+        LIMIT 1
+    ) AS precio_mayor
+FROM productos p
+JOIN categorias c ON p.categoria_id = c.id;
+
+-- Categoría
+INSERT INTO categorias (nombre) VALUES ('Ropa');
+
+-- Producto
+INSERT INTO productos (nombre, categoria_id, stock_actual, stock_minimo)
+VALUES ('Camiseta Básica', 1, 15, 5);
+
+-- Precios
+INSERT INTO precios_por_cantidad (producto_id, cantidad_minima, precio_unitario) VALUES
+(1, 1, 39.90),
+(1, 12, 35.00),
+(1, 24, 32.00);
+
+SELECT precio_unitario
+FROM precios_por_cantidad
+WHERE producto_id = 1 AND cantidad_minima <= 18
+ORDER BY cantidad_minima DESC
+LIMIT 1;
+
+CREATE TABLE proveedores (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    contacto VARCHAR(255),
+    telefono VARCHAR(50),
+    email VARCHAR(255),
+    direccion TEXT
+);
+
+CREATE TABLE producto_proveedor (
+    id SERIAL PRIMARY KEY,
+    producto_id INT REFERENCES productos(id) ON DELETE CASCADE,
+    proveedor_id INT REFERENCES proveedores(id) ON DELETE CASCADE,
+    codigo_proveedor VARCHAR(100), -- código interno del proveedor
+    UNIQUE (producto_id, proveedor_id)
+);
+
+CREATE TABLE producto_imagenes (
+    id SERIAL PRIMARY KEY,
+    producto_id INT REFERENCES productos(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    es_principal BOOLEAN DEFAULT FALSE
+);
+
+INSERT INTO proveedores (nombre, contacto, telefono, email, direccion)
+VALUES ('Textil S.A.', 'Juan Pérez', '987654321', 'juan@textilsa.com', 'Av. Los Alamos 123');
+
+INSERT INTO producto_proveedor (producto_id, proveedor_id, codigo_proveedor)
+VALUES (1, 1, 'TXT-CAM-001');
+
+INSERT INTO producto_imagenes (producto_id, url, es_principal)
+VALUES
+(1, 'https://miweb.com/img/camiseta1.jpg', TRUE),
+(1, 'https://miweb.com/img/camiseta2.jpg', FALSE);
+
+
+--variaciones por producto (tallas, colores, etc.) 
+CREATE TABLE producto_variantes (
+    id SERIAL PRIMARY KEY,
+    producto_id INT REFERENCES productos(id) ON DELETE CASCADE,
+    talla VARCHAR(10),          -- S, M, L, XL, 39, 40, 41, Única, etc.
+    color VARCHAR(50),          -- Rojo, Azul, #FF0000, etc.
+    stock_actual INT NOT NULL CHECK (stock_actual >= 0),
+    sku VARCHAR(100) UNIQUE,    -- opcional pero útil
+    UNIQUE (producto_id, talla, color) -- no repetir combinación
+);
+
+CREATE OR REPLACE VIEW vista_stock_total AS
+SELECT
+    p.id AS producto_id,
+    COALESCE(SUM(pv.stock_actual), 0) AS stock_total
+FROM productos p
+LEFT JOIN producto_variantes pv ON p.id = pv.producto_id
+GROUP BY p.id;
+
+
+-- producto base (sin stock aquí, o con 0)
+INSERT INTO productos (nombre, categoria_id, stock_actual, stock_minimo)
+VALUES ('Camiseta Básica', 1, 0, 5);
+
+INSERT INTO producto_variantes (producto_id, talla, color, stock_actual, sku) VALUES
+(1, 'S', 'Negro',  5, 'CAM-S-N'),
+(1, 'M', 'Negro',  3, 'CAM-M-N'),
+(1, 'L', 'Negro',  7, 'CAM-L-N'),
+(1, 'M', 'Blanco', 4, 'CAM-M-B');
+
