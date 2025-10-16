@@ -31,10 +31,23 @@ export default function Products() {
 
   const handleSearch = () => {
     setLoading(true);
+    const params = {};
+    if (search) params.search = search;
+    if (category) params.category = category;
+    if (stockFilter) params.stock = stockFilter;
+
     api
-      .get("/products", { params: { search } }) 
+      .get("/products", { params })
       .then((res) => {
-        setProducts(res.data);
+        const mapped = res.data.map((p) => ({
+          id: p.id,
+          name: p.nombre,
+          stock_total: p.stock_total,
+          categoria: p.categoria,
+          precio_menor: p.precio_menor,
+          imagen: p.imagen
+        }));
+        setProducts(mapped);
         setLoading(false);
       })
       .catch((err) => {
