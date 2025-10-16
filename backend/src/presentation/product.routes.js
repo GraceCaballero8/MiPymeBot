@@ -12,29 +12,35 @@ router.get('/', async (_req, res) => {
   try {
     const text = `
       SELECT
-          p.id,
-          p.nombre,
-          c.nombre AS categoria,
-          COALESCE(SUM(pv.stock_actual),0) AS stock_total,
-          p.stock_minimo,
-          CASE
-              WHEN COALESCE(SUM(pv.stock_actual),0) = 0 THEN 'Agotado'
-              WHEN COALESCE(SUM(pv.stock_actual),0) <= p.stock_minimo THEN 'Stock bajo'
-              ELSE 'En stock'
-          END AS estado_stock,
-          (SELECT precio_unitario
-           FROM precios_por_cantidad
-           WHERE producto_id = p.id AND cantidad_minima = 1
-           LIMIT 1) AS precio_menor,
-          (SELECT url
-           FROM producto_imagenes
-           WHERE producto_id = p.id AND es_principal = true
-           LIMIT 1) AS imagen
-      FROM productos p
-      JOIN categorias c ON p.categoria_id = c.id
-      LEFT JOIN producto_variantes pv ON p.id = pv.producto_id
-      GROUP BY p.id, c.nombre
-      ORDER BY p.id DESC;
+        p.id,
+        p.nombre,
+        c.nombre AS categoria,
+        COALESCE(SUM(pv.stock_actual), 0)::int AS stock_total,
+        p.stock_minimo,
+        CASE
+            WHEN COALESCE(SUM(pv.stock_actual), 0) = 0 THEN 'Agotado'
+            WHEN COALESCE(SUM(pv.stock_actual), 0) <= p.stock_minimo THEN 'Stock bajo'
+            ELSE 'En stock'
+        END AS estado_stock,
+        COALESCE(
+            (SELECT precio_unitario
+            FROM precios_por_cantidad
+            WHERE producto_id = p.id
+              AND cantidad_minima = 1
+            LIMIT 1),
+            0
+        ) AS precio_menor,
+        (SELECT url
+        FROM producto_imagenes
+        WHERE producto_id = p.id
+          AND es_principal = true
+        LIMIT 1) AS imagen
+    FROM productos p
+    JOIN categorias c ON p.categoria_id = c.id
+    LEFT JOIN producto_variantes pv ON p.id = pv.producto_id
+    GROUP BY p.id, c.nombre
+    ORDER BY p.id DESC;
+          
     `;
     const { rows } = await db.query(text);
     res.json(rows);
@@ -50,16 +56,6 @@ router.get("/:id", async (req, res) => {
     res.json(producto);
   } catch (e) {
     res.status(404).json({ message: e.message });
-  }
-});
-
-// POST /products
-router.post("/", async (req, res) => {
-  try {
-    const nuevo = await ProductoService.crear(req.body);
-    res.status(201).json(nuevo);
-  } catch (e) {
-    res.status(400).json({ message: e.message });
   }
 });
 
@@ -98,6 +94,8 @@ router.post("/", upload.single("imagen"), async (req, res) => {
         [producto.id, url]
       );
     }
+
+    
 
     res.status(201).json(producto);
   } catch (e) {
